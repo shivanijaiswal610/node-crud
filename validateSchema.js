@@ -13,8 +13,6 @@ const validateUser = (req, res, next) => {
     }
     next();
   }
-
-  next();
 };
 
 module.exports = validateUser;
