@@ -38,4 +38,33 @@ const uploadImage = async function (req, res) {
   }
 };
 
-module.exports = { createUser, uploadImage };
+const getAllUsers = async function (req, res) {
+  try {
+    const resp = await userService.getAllUsers();
+    if (resp && resp?.success) {
+      res.status(200).json(resp);
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error?.message || "Internal Server Error",
+    });
+  }
+};
+
+const getUser = async function (req, res) {
+  try {
+    const userId = req?.user?.userId;
+    const resp = await userService.getUser(userId);
+    if (resp && resp?.success) {
+      res.status(200).json(resp);
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error?.message || "Internal Server Error",
+    });
+  }
+};
+
+module.exports = { createUser, uploadImage, getAllUsers, getUser };

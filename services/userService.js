@@ -1,46 +1,56 @@
 const db = require("../database");
-const multer = require("multer");
 const jwt = require("jsonwebtoken");
-const path = require("path");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${Date.now()}${ext}`);
-  },
-});
-
-const upload = multer({ storage: storage });
 
 const createUser = (userData) => {
   return new Promise((resolve, reject) => {
-    const query = "INSERT INTO users SET ?";
-    db.query(query, userData, (err, result) => {
-      if (err) {
-        reject({
-          success: false,
-          message: err?.sqlMessage || "Internal Server Error",
-        });
-      } else {
-        const user = { id: result.insertId, ...userData };
-        const token = jwt.sign(
-          { userId: user.id, username: user.username },
-          process.env.JWT_SECRET_TOKEN,
-          {
-            expiresIn: "1h",
+    const emailExistsQuery =
+      "SELECT COUNT(*) as count FROM users WHERE email = ?";
+    db.query(
+      emailExistsQuery,
+      [userData.email],
+      (emailExistsErr, emailExistsResult) => {
+        if (emailExistsErr) {
+          reject({
+            success: false,
+            message: emailExistsErr?.sqlMessage || "Internal Server Error",
+          });
+        } else {
+          const emailExists = emailExistsResult[0].count > 0;
+
+          if (emailExists) {
+            reject({
+              success: false,
+              message: "Email already exists. Please choose a different email.",
+            });
+          } else {
+            const insertUserQuery = "INSERT INTO users SET ?";
+            db.query(insertUserQuery, userData, (insertErr, result) => {
+              if (insertErr) {
+                reject({
+                  success: false,
+                  message: insertErr?.sqlMessage || "Internal Server Error",
+                });
+              } else {
+                const user = { id: result.insertId, ...userData };
+                const token = jwt.sign(
+                  { userId: user.id, username: user.username },
+                  process.env.JWT_SECRET_TOKEN,
+                  {
+                    expiresIn: "1h",
+                  }
+                );
+                resolve({
+                  success: true,
+                  message: "User Created Successfully!",
+                  user,
+                  token,
+                });
+              }
+            });
           }
-        );
-        resolve({
-          success: true,
-          message: "User Created Successfully!",
-          user,
-          token,
-        });
+        }
       }
-    });
+    );
   });
 };
 
@@ -74,4 +84,55 @@ const uploadImage = async (filename, userId) => {
   });
 };
 
-module.exports = { createUser, uploadImage };
+const getAllUsers = async (filename, userId) => {
+  return new Promise((resolve, reject) => {
+    const query = "SELECT * FROM users";
+    db.query(
+      query,
+      (err, result) => {
+        if (err) {
+          reject({
+            success: false,
+            message: err?.sqlMessage || "Internal Server Error",
+          });
+        } else {
+          if (result) {
+            resolve({
+              success: true,
+              message: "All users data fetched successfully",
+              users : result
+            });
+          }
+        }
+      }
+    );
+  });
+};
+
+const getUser = async (userId) => {
+  return new Promise((resolve, reject) => {
+    const query = "SELECT * FROM users WHERE user_id = ?";
+    db.query(
+      query,
+      [userId],
+      (err, result) => {
+        if (err) {
+          reject({
+            success: false,
+            message: err?.sqlMessage || "Internal Server Error",
+          });
+        } else {
+          if (result) {
+            resolve({
+              success: true,
+              message: "User data fetched successfully",
+              user : result
+            });
+          }
+        }
+      }
+    );
+  });
+};
+
+module.exports = { createUser, uploadImage, getAllUsers, getUser };
