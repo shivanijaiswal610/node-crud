@@ -135,4 +135,43 @@ const getUser = async (userId) => {
   });
 };
 
-module.exports = { createUser, uploadImage, getAllUsers, getUser };
+const updateUser = async (dataToUpdate, userId) => {
+  return new Promise((resolve, reject) => {
+    const updateQuery = "UPDATE users SET ? WHERE user_id = ?";
+    db.query(updateQuery, [dataToUpdate, userId], (err, updateResult) => {
+      if (err) {
+        reject({
+          success: false,
+          message: err?.sqlMessage || "Internal Server Error",
+        });
+      } else {
+        const getUserQuery = "SELECT * FROM users WHERE user_id = ?";
+        db.query(getUserQuery, [userId], (fetchErr, fetchResult) => {
+          if (fetchErr) {
+            reject({
+              success: false,
+              message: fetchErr?.sqlMessage || "Internal Server Error",
+            });
+          } else {
+            if (fetchResult && fetchResult.length > 0) {
+              const updatedUser = fetchResult[0];
+              resolve({
+                success: true,
+                message: "User updated successfully",
+                user: updatedUser,
+              });
+            } else {
+              reject({
+                success: false,
+                message: "User data not found after update",
+              });
+            }
+          }
+        });
+      }
+    });
+  });
+};
+
+
+module.exports = { createUser, uploadImage, getAllUsers, getUser, updateUser };
