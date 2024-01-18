@@ -33,7 +33,7 @@ const createUser = (userData) => {
               } else {
                 const user = { id: result.insertId, ...userData };
                 const token = jwt.sign(
-                  { userId: user.id, username: user.username },
+                  { userId: user.id, username: user.first_name },
                   process.env.JWT_SECRET_TOKEN,
                   {
                     expiresIn: "1h",
@@ -123,10 +123,19 @@ const getUser = async (userId) => {
           });
         } else {
           if (result) {
+            const userData = result[0]
+            const token = jwt.sign(
+              { userId: userData.user_id, username: userData.first_name },
+              process.env.JWT_SECRET_TOKEN,
+              {
+                expiresIn: "1h",
+              }
+            );
             resolve({
               success: true,
               message: "User data fetched successfully",
-              user : result
+              user : result, 
+              token
             });
           }
         }
@@ -189,8 +198,7 @@ const deleteUser = async (userId) => {
           if (result) {
             resolve({
               success: true,
-              message: "User data deleted successfully",
-              user : result
+              message: "User data deleted successfully"
             });
           }
         }
