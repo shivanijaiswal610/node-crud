@@ -7,7 +7,8 @@ const {
   uploadImage,
   getAllUsers,
   getUser,
-  updateUser
+  updateUser,
+  deleteUser
 } = require("../controllers/userController");
 const upload = require("../utils/uploadProfile");
 
@@ -21,5 +22,7 @@ router.post(
 router.get("/all", getAllUsers);
 router.get("/", authenticate, getUser);
 router.put("/update", authenticate, validateReq, updateUser);
+router.delete("/delete", authenticate, deleteUser);
+
 
 module.exports = router;

@@ -83,4 +83,19 @@ const updateUser = async function (req, res) {
   }
 };
 
-module.exports = { createUser, uploadImage, getAllUsers, getUser, updateUser };
+const deleteUser = async function (req, res) {
+  try {
+    const userId = req?.user?.userId;
+    const resp = await userService.deleteUser(userId);
+    if (resp && resp?.success) {
+      res.status(200).json(resp);
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error?.message || "Internal Server Error",
+    });
+  }
+};
+
+module.exports = { createUser, uploadImage, getAllUsers, getUser, updateUser, deleteUser };

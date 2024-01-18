@@ -173,5 +173,31 @@ const updateUser = async (dataToUpdate, userId) => {
   });
 };
 
+const deleteUser = async (userId) => {
+  return new Promise((resolve, reject) => {
+    const query = "DELETE FROM users WHERE user_id = ?";
+    db.query(
+      query,
+      [userId],
+      (err, result) => {
+        if (err) {
+          reject({
+            success: false,
+            message: err?.sqlMessage || "Internal Server Error",
+          });
+        } else {
+          if (result) {
+            resolve({
+              success: true,
+              message: "User data deleted successfully",
+              user : result
+            });
+          }
+        }
+      }
+    );
+  });
+};
 
-module.exports = { createUser, uploadImage, getAllUsers, getUser, updateUser };
+
+module.exports = { createUser, uploadImage, getAllUsers, getUser, updateUser, deleteUser };
